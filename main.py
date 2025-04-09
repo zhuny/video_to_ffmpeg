@@ -1,6 +1,7 @@
 import argparse
 import inspect
 import re
+from pathlib import Path
 
 
 class FunctionDoc:
@@ -50,7 +51,9 @@ class MyParser:
 
     def run(self):
         args = self.parser.parse_args()
-        print(args)
+        kwargs = dict(vars(args))
+        kwargs.pop('func')
+        args.func(**kwargs)
 
     def _register(self, func):
         doc = FunctionDoc.parse(func.__doc__)
