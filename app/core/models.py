@@ -26,18 +26,30 @@ class VideoOutput:
     def json(self):
         return {
             "name": self.name,
-            "video_input": self.video_input,
+            "video_input": [
+                str(vi) for vi in self.video_input
+            ],
             "piece_list": self.piece_list
         }
 
     def create(self, name: str):
         self.name = name
-        self._save()
+
+    def save(self):
+        self.video_folder.mkdir(parents=True, exist_ok=True)
+        self.info_file.write_text(json.dumps(self.json))
+
+    def load(self):
+        info = json.loads(self.info_file.read_text())
+        self.name = info['name']
+        self.video_input = [Path(vi) for vi in info['video_input']]
+        self.piece_list = info['piece_list']
+
+    def add_video_input(self, filename):
+        current_index = len(self.video_input)
+        self.video_input.append(filename)
+        return current_index
 
     def _cell(self, u: int) -> str:
         ceil_num = self.number // u * u
         return f'{ceil_num:03}'
-
-    def _save(self):
-        self.video_folder.mkdir(parents=True, exist_ok=True)
-        self.info_file.write_text(json.dumps(self.json))

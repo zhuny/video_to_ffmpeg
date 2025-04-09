@@ -14,5 +14,6 @@ def run(name: str):
             continue
 
         video.create(name)
+        video.save()
         print(f"New Video ID: {i} ({name})")
         break
