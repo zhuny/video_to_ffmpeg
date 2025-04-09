@@ -36,6 +36,18 @@ class MyParser:
         from app.command.cmd_create import run as create_run
         self._register(create_run)
 
+        from app.command.cmd_file import run as file_run
+        self._register(file_run)
+
+        from app.command.cmd_piece import run as piece_run
+        self._register(piece_run)
+
+        from app.command.cmd_gen import run as gen_run
+        self._register(gen_run)
+
+        from app.command.cmd_list import run as list_run
+        self._register(list_run)
+
     def run(self):
         args = self.parser.parse_args()
         print(args)
