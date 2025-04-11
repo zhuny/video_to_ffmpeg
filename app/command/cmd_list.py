@@ -11,4 +11,4 @@ def run():
             break
 
         video.load()
-        print(f'{i}. {video.name}')
+        print(f'{i}. {video.model.name}')

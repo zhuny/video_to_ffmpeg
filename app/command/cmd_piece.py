@@ -1,4 +1,4 @@
-from app.core.models import VideoPoint, VideoOutput, VideoPiece
+from app.core.models import VideoPoint, VideoOutput, VideoPieceModel
 
 
 def run(video_id: int, file_id: int, start: VideoPoint, end: VideoPoint):
@@ -16,7 +16,7 @@ def run(video_id: int, file_id: int, start: VideoPoint, end: VideoPoint):
         return
 
     video.load()
-    if not (0 <= file_id < len(video.video_input)):
+    if not video.is_valid_file_id(file_id):
         print("Input Wrong!")
         return
 
@@ -24,6 +24,9 @@ def run(video_id: int, file_id: int, start: VideoPoint, end: VideoPoint):
         print(f"Start({start}) should be earlier than End({end})")
         return
 
-    piece = VideoPiece(file_id, start, end)
+    piece = VideoPieceModel(
+        file_id=file_id,
+        start=start, end=end
+    )
     video.add_piece(piece)
     video.save()

@@ -1,6 +1,10 @@
 import datetime
 import json
 from pathlib import Path
+from typing import Any
+
+import pydantic
+from pydantic_core import core_schema
 
 
 class VideoPoint:
@@ -13,38 +17,43 @@ class VideoPoint:
     def __str__(self):
         return self.value.isoformat()
 
-
-class VideoPiece:
-    def __init__(self, file_id, start, end):
-        self.file_id = file_id
-        self.start: VideoPoint = start
-        self.end: VideoPoint = end
-
-    @property
-    def json(self):
-        return {
-            'file_id': self.file_id,
-            'start': str(self.start),
-            'end': str(self.end)
-        }
+    @classmethod
+    def validate(cls, value: Any, handler, info: pydantic.ValidationInfo):
+        return cls(str(value))
 
     @classmethod
-    def from_json(cls, piece):
-        return cls(
-            piece['file_id'],
-            VideoPoint(piece['start']), VideoPoint(piece['end'])
+    def __get_pydantic_core_schema__(cls,
+                                     source_type: Any,
+                                     handler: pydantic.GetCoreSchemaHandler):
+        return core_schema.with_info_wrap_validator_function(
+            cls.validate,
+            handler(str),
+            field_name=handler.field_name,
+            serialization=core_schema.PlainSerializerFunctionSerSchema(
+                function=str,
+                type='function-plain'
+            )
         )
+
+
+class VideoPieceModel(pydantic.BaseModel):
+    file_id: int
+    start: VideoPoint
+    end: VideoPoint
+
+
+class VideoModel(pydantic.BaseModel):
+    name: str = ""
+    video_name: str = ""
+    video_description: str = ""
+    piece_list: list[VideoPieceModel] = []
+    video_input: list[Path] = []
 
 
 class VideoOutput:
     def __init__(self, number: int):
         self.number = number
-
-        self.name = ""
-        self.video_name = ""
-        self.video_description = ""
-        self.video_input = []
-        self.piece_list = []
+        self.model = VideoModel()
 
     def is_exists(self):
         return self.info_file.exists()
@@ -58,51 +67,39 @@ class VideoOutput:
     def info_file(self):
         return self.video_folder / 'info.json'
 
-    @property
-    def json(self):
-        return {
-            "name": self.name,
-            "video_name": self.video_name,
-            "video_description": self.video_description,
-            "video_input": [
-                str(vi) for vi in self.video_input
-            ],
-            "piece_list": [
-                piece.json
-                for piece in self.piece_list
-            ]
-        }
-
     def update_meta(self, name="", video_name="", video_description=""):
-        self.name = name or self.name
-        self.video_name = video_name or self.video_name
-        self.video_description = video_description or self.video_description
+        updated = {
+            'name': name,
+            'video_name': video_name,
+            'video_description': video_description
+        }
+        updated = {
+            k: v
+            for k, v in updated.items()
+            if v
+        }
+        self.model.model_copy(update=updated)
 
     def save(self):
         self.video_folder.mkdir(parents=True, exist_ok=True)
-        self.info_file.write_text(json.dumps(self.json))
+        self.info_file.write_text(json.dumps(self.model.model_dump(mode='json')))
 
     def load(self):
         info = json.loads(self.info_file.read_text())
+        self.model = VideoModel.model_validate(info)
 
-        self.name = info['name']
-        self.video_name = info['video_name']
-        self.video_description = info['video_description']
-        self.video_input = [Path(vi) for vi in info['video_input']]
-        self.piece_list = [
-            VideoPiece.from_json(piece)
-            for piece in info['piece_list']
-        ]
+    def is_valid_file_id(self, file_id):
+        return 0 <= file_id < len(self.model.video_input)
 
     def add_video_input(self, filename):
-        current_index = len(self.video_input)
-        self.video_input.append(filename)
+        current_index = len(self.model.video_input)
+        self.model.video_input.append(filename)
         return current_index
 
-    def add_piece(self, piece: VideoPiece):
-        assert 0 <= piece.file_id < len(self.video_input)
+    def add_piece(self, piece: VideoPieceModel):
+        assert self.is_valid_file_id(piece.file_id)
 
-        self.piece_list.append(piece)
+        self.model.piece_list.append(piece)
 
     def _cell(self, u: int) -> str:
         ceil_num = self.number // u * u
