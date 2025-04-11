@@ -41,6 +41,8 @@ class VideoOutput:
         self.number = number
 
         self.name = ""
+        self.video_name = ""
+        self.video_description = ""
         self.video_input = []
         self.piece_list = []
 
@@ -60,6 +62,8 @@ class VideoOutput:
     def json(self):
         return {
             "name": self.name,
+            "video_name": self.video_name,
+            "video_description": self.video_description,
             "video_input": [
                 str(vi) for vi in self.video_input
             ],
@@ -69,8 +73,10 @@ class VideoOutput:
             ]
         }
 
-    def create(self, name: str):
-        self.name = name
+    def update_meta(self, name="", video_name="", video_description=""):
+        self.name = name or self.name
+        self.video_name = video_name or self.video_name
+        self.video_description = video_description or self.video_description
 
     def save(self):
         self.video_folder.mkdir(parents=True, exist_ok=True)
@@ -78,7 +84,10 @@ class VideoOutput:
 
     def load(self):
         info = json.loads(self.info_file.read_text())
+
         self.name = info['name']
+        self.video_name = info['video_name']
+        self.video_description = info['video_description']
         self.video_input = [Path(vi) for vi in info['video_input']]
         self.piece_list = [
             VideoPiece.from_json(piece)
