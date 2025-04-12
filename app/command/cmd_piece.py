@@ -1,4 +1,5 @@
-from app.core.models import VideoPoint, VideoOutput, VideoPieceModel
+from app.core.model.video import VideoPieceModel, VideoOutput
+from app.core.model.custom import VideoPoint
 
 
 def run(video_id: int, file_id: int, start: VideoPoint, end: VideoPoint):

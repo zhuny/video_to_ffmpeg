@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from app.core.models import VideoOutput
+from app.core.model.video import VideoOutput
 
 
 def run(video_id: int, filename: Path):
