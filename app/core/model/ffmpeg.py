@@ -6,7 +6,8 @@ from pydantic import BaseModel
 
 class FfmpegFilterOne(BaseModel):
     name: str
-    kwargs: dict[str, Any]
+    argv: str = ""
+    kwargs: dict[str, Any] = {}
 
 
 class FfmpegFilter(BaseModel):

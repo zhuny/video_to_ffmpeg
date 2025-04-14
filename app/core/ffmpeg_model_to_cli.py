@@ -56,7 +56,10 @@ class ModelToCli:
         yield kw.name
         yield "="
 
-        yield ",".join(
+        if kw.argv:
+            yield kw.argv
+
+        yield ":".join(
             f'{k}={v}'
             for k, v in kw.kwargs.items()
         )
