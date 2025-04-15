@@ -8,7 +8,7 @@ from pydantic_core import core_schema
 
 class VideoPoint(Decimal):
     @classmethod
-    def validate(cls, value: Any, handler, info: pydantic.ValidationInfo):
+    def validate(cls, value: Any, handler=None, info: pydantic.ValidationInfo=None):
         value = str(value)
         if g := re.fullmatch(r"(?:(\d+):)?(\d+):(\d+)(?:\.(\d+))?", value):
             hours, minutes, seconds, milliseconds = g.groups()
@@ -21,7 +21,8 @@ class VideoPoint(Decimal):
             )
         else:
             value = Decimal(value)
-        return VideoPoint(value)
+
+        return cls(value)
 
     @classmethod
     def _wrap_num(cls, num_text):
@@ -50,8 +51,11 @@ class IntList:
     def __init__(self, value: str):
         self.value = [int(_) for _ in value.split(",")]
 
+    def __iter__(self):
+        yield from self.value
+
     @classmethod
-    def validate(cls, value: Any, handler, info: pydantic.ValidationInfo):
+    def validate(cls, value: Any, handler=None, info: pydantic.ValidationInfo=None):
         return cls(str(value))
 
     @classmethod

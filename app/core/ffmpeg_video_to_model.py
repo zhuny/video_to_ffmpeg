@@ -1,6 +1,6 @@
 from app.core.model.custom import VideoPoint
-from app.core.model.ffmpeg import FfmpegFilter, FfmpegFilterOne
-from app.core.model.video import VideoModel
+from app.core.model.ffmpeg import FfmpegFilter, FfmpegFilterOne, FfmpegCommand
+from app.core.model.video import VideoModel, VideoOutput
 
 
 class KeyCounter:
@@ -14,9 +14,10 @@ class KeyCounter:
         return result
 
 
-class FfmpegGenerator:
-    def __init__(self, model: VideoModel):
-        self.model = model
+class FfmpegVideoToModel:
+    def __init__(self, model: VideoOutput):
+        self.meta = model
+        self.model = model.model
         self.key_counter = KeyCounter('z')
         self.duration = VideoPoint("0.5")
 
@@ -24,8 +25,17 @@ class FfmpegGenerator:
         self.output_audio_key = None
 
     def generate(self):
-        yield from self._generate_video()
-        yield from self._generate_audio()
+        filter_list = []
+        filter_list.extend(self._generate_video())
+        filter_list.extend(self._generate_audio())
+
+        return FfmpegCommand(
+            inputs=list(self.model.video_input),
+            filter_group=filter_list,
+            output_video=self.output_video_key,
+            output_audio=self.output_audio_key,
+            output_file=self.meta.output_file
+        )
 
     def _generate_video(self):
         prev_key = None
@@ -43,10 +53,9 @@ class FfmpegGenerator:
                             "end": piece.end
                         }
                     ),
-                    FfmpegFilterOne(
-                        name="setpts",
-                        argv="PTS-STARTPTS"
-                    )
+                    FfmpegFilterOne(name="setpts", argv="PTS-STARTPTS"),
+                    FfmpegFilterOne(name="settb", argv="AVTB"),
+                    FfmpegFilterOne(name="fps", argv="60")
                 ],
                 outputs=[current_key]
             )
@@ -64,6 +73,10 @@ class FfmpegGenerator:
                                 "duration": self.duration,
                                 "offset": offset_time
                             }
+                        ),
+                        FfmpegFilterOne(
+                            name="format",
+                            argv="yuv420p"
                         )
                     ],
                     outputs=[next_key]

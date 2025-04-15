@@ -13,5 +13,12 @@ def run(video_id_list: IntList):
         video = VideoOutput(video_id)
         if not video.is_exists():
             print(f"Video Id ({video_id}) Not Exists")
+            return
+
+        video.load()
+
+        if video.is_empty():
+            print(f"Add Piece First!")
+            return
 
         video.generate_output()
