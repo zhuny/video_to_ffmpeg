@@ -64,9 +64,12 @@ class MyParser:
 
         result = inspect.signature(func)
         for name, anno in result.parameters.items():
+            anno_type = anno.annotation
+            # pydantic support for custom type
+            anno_type = getattr(anno_type, 'validate', anno_type)
             parser.add_argument(
                 name,
-                type=anno.annotation,
+                type=anno_type,
                 help=doc.param_doc.get(name, '-')
             )
 

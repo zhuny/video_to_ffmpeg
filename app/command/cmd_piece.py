@@ -22,8 +22,7 @@ def run(video_id: int, file_id: int, start: VideoPoint, end: VideoPoint):
         return
 
     if end < start:
-        print(f"Start({start}) should be earlier than End({end})")
-        return
+        start, end = end, start
 
     piece = VideoPieceModel(
         file_id=file_id,
@@ -31,3 +30,5 @@ def run(video_id: int, file_id: int, start: VideoPoint, end: VideoPoint):
     )
     video.add_piece(piece)
     video.save()
+
+    print(f"Total {len(video.model.piece_list)} piece(s)")
