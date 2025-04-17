@@ -1,18 +1,7 @@
 import requests
 
+from app.command.prompt import ask_confirm, get_default_or_input
 from app.core.model.video import VideoOutput
-
-
-def ask_confirm(prompt):
-    answer = input(f'{prompt} (Y if so) ')
-    return answer.lower() == 'y'
-
-
-def get_default_or_input(description, default_value):
-    print(f'{description} : {default_value}')
-    typed = input('New value or empty ("{}" => original text) ')
-    typed = typed.replace("{}", default_value)
-    return typed or default_value
 
 
 class SMM2Controller:

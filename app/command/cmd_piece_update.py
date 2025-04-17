@@ -1,3 +1,4 @@
+from app.command.prompt import get_default_or_input
 from app.core.model.video import VideoPieceModel, VideoOutput
 from app.core.model.custom import VideoPoint
 
@@ -10,7 +11,18 @@ def run_read(video: VideoOutput):
 
 
 def run_update(video: VideoOutput):
-    pass
+    run_read(video)
+
+    piece_index = int(input('Piece > '))
+    piece = video.model.piece_list[piece_index]
+    piece.start = get_default_or_input(
+        "시작 지점", piece.start,
+        value_type=VideoPoint
+    )
+    piece.end = get_default_or_input(
+        "끝 지점", piece.end,
+        value_type=VideoPoint
+    )
 
 
 def run_split(video: VideoOutput):
