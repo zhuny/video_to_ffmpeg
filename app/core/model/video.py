@@ -1,39 +1,11 @@
-import datetime
 import json
+import subprocess
 from pathlib import Path
-from typing import Any
 
 import pydantic
-from pydantic_core import core_schema
 
-
-class VideoPoint:
-    def __init__(self, value: str):
-        self.value = datetime.time.fromisoformat(value)
-
-    def __lt__(self, other):
-        return self.value < other.value
-
-    def __str__(self):
-        return self.value.isoformat()
-
-    @classmethod
-    def validate(cls, value: Any, handler, info: pydantic.ValidationInfo):
-        return cls(str(value))
-
-    @classmethod
-    def __get_pydantic_core_schema__(cls,
-                                     source_type: Any,
-                                     handler: pydantic.GetCoreSchemaHandler):
-        return core_schema.with_info_wrap_validator_function(
-            cls.validate,
-            handler(str),
-            field_name=handler.field_name,
-            serialization=core_schema.PlainSerializerFunctionSerSchema(
-                function=str,
-                type='function-plain'
-            )
-        )
+from app.config import setting
+from app.core.model.custom import VideoPoint
 
 
 class VideoPieceModel(pydantic.BaseModel):
@@ -48,6 +20,9 @@ class VideoModel(pydantic.BaseModel):
     video_description: str = ""
     piece_list: list[VideoPieceModel] = []
     video_input: list[Path] = []
+
+    def is_empty(self):
+        return len(self.piece_list) == 0
 
 
 class VideoOutput:
@@ -67,6 +42,10 @@ class VideoOutput:
     def info_file(self):
         return self.video_folder / 'info.json'
 
+    @property
+    def output_file(self):
+        return self.video_folder / 'output.ts'
+
     def update_meta(self, name="", video_name="", video_description=""):
         updated = {
             'name': name,
@@ -78,7 +57,10 @@ class VideoOutput:
             for k, v in updated.items()
             if v
         }
-        self.model.model_copy(update=updated)
+        self.model = self.model.model_copy(update=updated)
+
+    def is_empty(self):
+        return self.model.is_empty()
 
     def save(self):
         self.video_folder.mkdir(parents=True, exist_ok=True)
@@ -100,6 +82,22 @@ class VideoOutput:
         assert self.is_valid_file_id(piece.file_id)
 
         self.model.piece_list.append(piece)
+
+    def generate_output(self):
+        from app.core.ffmpeg_model_to_cli import FfmpegModelToCli
+        from app.core.ffmpeg_video_to_model import FfmpegVideoToModel
+
+        pipeline_list = [
+            FfmpegVideoToModel,
+            FfmpegModelToCli
+        ]
+        data = self
+
+        for pipe in pipeline_list:
+            data = pipe(data).generate()
+
+        print(data)
+        subprocess.run(data)
 
     def _cell(self, u: int) -> str:
         ceil_num = self.number // u * u
