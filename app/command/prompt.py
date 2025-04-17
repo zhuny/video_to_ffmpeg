@@ -11,6 +11,6 @@ def get_default_or_input(description, default_value,
     typed = typed.replace("{}", str(default_value))
 
     if typed:
-        return value_type(typed)
+        return getattr(value_type, 'validate', value_type)(typed)
     else:
         return default_value

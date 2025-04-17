@@ -1,3 +1,5 @@
+import operator
+
 from app.command.prompt import get_default_or_input
 from app.core.model.video import VideoPieceModel, VideoOutput
 from app.core.model.custom import VideoPoint
@@ -25,12 +27,16 @@ def run_update(video: VideoOutput):
     )
 
 
-def run_split(video: VideoOutput):
-    pass
-
-
 def run_sort(video: VideoOutput):
-    pass
+    video.model.piece_list.sort(
+        key=operator.attrgetter('start')
+    )
+
+
+def run_delete(video: VideoOutput):
+    run_read(video)
+    piece_index = int(input("Delete Index > "))
+    video.model.piece_list.pop(piece_index)
 
 
 def run(function: str, video_id: int):
@@ -49,8 +55,8 @@ def run(function: str, video_id: int):
     valid_func = {
         'read': run_read,
         'update': run_update,
-        'split': run_split,
-        'sort': run_sort
+        'sort': run_sort,
+        'delete': run_delete
     }
     if function not in valid_func:
         print('Invalid Function Name')
