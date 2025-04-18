@@ -12,3 +12,6 @@ def run():
 
         video.load()
         print(f'{i}. {video.model.name}')
+        print(f'  Video Name : {video.model.video_name}')
+        print(f'  Video Description : {video.model.video_description}')
+        print()

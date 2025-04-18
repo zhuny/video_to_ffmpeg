@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pydantic
 
+from app import config
 from app.config import setting
 from app.core.model.custom import VideoPoint
 
@@ -45,6 +46,12 @@ class VideoOutput:
     @property
     def output_file(self):
         return self.video_folder / 'output.ts'
+
+    @property
+    def thumbnail_folder(self):
+        f = self.video_folder / 'output'
+        f.mkdir(exist_ok=True, parents=True)
+        return f
 
     def update_meta(self, name="", video_name="", video_description=""):
         updated = {
@@ -97,6 +104,15 @@ class VideoOutput:
             data = pipe(data).generate()
 
         print(data)
+        subprocess.run(data)
+
+    def generate_thumbnail(self):
+        data = [
+            config.setting.ffmpeg_executable,
+            '-i', str(self.output_file),
+            '-r', '10',
+            self.thumbnail_folder / f'thumb_{self.number:03}_%03d.png'
+        ]
         subprocess.run(data)
 
     def _cell(self, u: int) -> str:
