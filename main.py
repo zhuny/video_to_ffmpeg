@@ -54,6 +54,9 @@ class MyParser:
         from app.command.cmd_video_update import run as video_update_run
         self._register(video_update_run)
 
+        from app.command.cmd_upload import run as upload_run
+        self._register(upload_run)
+
     def run(self):
         args = self.parser.parse_args()
         kwargs = dict(vars(args))

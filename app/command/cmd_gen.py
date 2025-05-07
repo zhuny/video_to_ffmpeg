@@ -23,8 +23,8 @@ def run(video_id_list: IntList):
             print(f"Add Piece First!")
             return
 
-        # video.generate_output()
-        # video.generate_thumbnail()
+        video.generate_output()
+        video.generate_thumbnail()
 
         for png in video.video_folder.glob('*.png'):
             png: Path
