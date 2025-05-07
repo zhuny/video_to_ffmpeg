@@ -1,11 +1,12 @@
+import datetime
 import json
 import subprocess
 from pathlib import Path
+from typing import Optional
 
 import pydantic
 
 from app import config
-from app.config import setting
 from app.core.model.custom import VideoPoint
 
 
@@ -21,6 +22,8 @@ class VideoModel(pydantic.BaseModel):
     video_description: str = ""
     piece_list: list[VideoPieceModel] = []
     video_input: list[Path] = []
+    publish_date: Optional[datetime.date] = None
+    video_id: str = ""
 
     def is_empty(self):
         return len(self.piece_list) == 0
@@ -52,6 +55,13 @@ class VideoOutput:
         f = self.video_folder / 'output'
         f.mkdir(exist_ok=True, parents=True)
         return f
+
+    @property
+    def thumbnail_image(self):
+        for png in self.video_folder.glob('*.png'):
+            if png.stem.startswith('thumb'):
+                continue
+            return png
 
     def update_meta(self, name="", video_name="", video_description=""):
         updated = {

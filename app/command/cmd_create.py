@@ -29,6 +29,13 @@ class SMM2Controller:
         )
 
     @classmethod
+    def get_posted_level_list(cls, maker_id):
+        response = requests.get(
+            f'https://tgrcode.com/mm2/get_posted/{maker_id}'
+        )
+        return response.json()['courses']
+
+    @classmethod
     def _with_dash(cls, level_code):
         return '-'.join([
             level_code[:3],

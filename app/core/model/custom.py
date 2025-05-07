@@ -71,12 +71,17 @@ class IntList:
         pattern = re.compile(r"(\d+)-(\d+)")
 
         for v in value.split(","):
+            print(value, v)
             if g := pattern.fullmatch(v):
                 start, end = g.groups()
                 start, end = int(start), int(end)
                 result.extend(range(start, end+1))
             else:
                 result.append(int(v))
+
+    def shuffle(self):
+        import random
+        random.shuffle(self.value)
 
     def __iter__(self):
         yield from self.value
