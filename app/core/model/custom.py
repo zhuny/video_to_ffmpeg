@@ -24,6 +24,24 @@ class VideoPoint(Decimal):
 
         return cls(value)
 
+    def __str__(self):
+        upper, lower = divmod(self, 1)
+        string_list = []
+        while upper > 0:
+            upper, r = divmod(upper, 60)
+            if upper > 0:
+                r_t = f':{r:02}'
+            else:
+                r_t = str(r)
+            string_list.append(r_t)
+
+        string_list.reverse()
+
+        if lower > 0:
+            string_list.append(str(lower).lstrip('0'))
+
+        return ''.join(string_list)
+
     @classmethod
     def _wrap_num(cls, num_text):
         return Decimal(num_text or 0)
@@ -49,7 +67,16 @@ class VideoPoint(Decimal):
 
 class IntList:
     def __init__(self, value: str):
-        self.value = [int(_) for _ in value.split(",")]
+        result = self.value = []
+        pattern = re.compile(r"(\d+)-(\d+)")
+
+        for v in value.split(","):
+            if g := pattern.fullmatch(v):
+                start, end = g.groups()
+                start, end = int(start), int(end)
+                result.extend(range(start, end+1))
+            else:
+                result.append(int(v))
 
     def __iter__(self):
         yield from self.value

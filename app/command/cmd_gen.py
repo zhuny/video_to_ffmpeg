@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from app.core.model.custom import IntList
 from app.core.model.video import VideoOutput
 
@@ -21,4 +23,16 @@ def run(video_id_list: IntList):
             print(f"Add Piece First!")
             return
 
-        video.generate_output()
+        # video.generate_output()
+        # video.generate_thumbnail()
+
+        for png in video.video_folder.glob('*.png'):
+            png: Path
+            png_new = png.with_stem(
+                stem=png.stem.replace(
+                    'thumb',
+                    f'thumb_{video_id:03}'
+                )
+            )
+            print(png, png_new)
+            png.replace(png_new)
